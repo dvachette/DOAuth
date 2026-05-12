@@ -1,0 +1,28 @@
+services:
+  auth-server:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:17-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth
+      POSTGRES_DB: auth
+    networks:
+      - internal
+
+volumes:
+  pgdata:
+
+networks:
+  internal:

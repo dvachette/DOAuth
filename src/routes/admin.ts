@@ -81,6 +81,7 @@ adminRouter.post("/applications", async (req: Request, res: Response): Promise<v
     const newApplication = await applicationService.createApplication(name);
 
     res.status(201).json(newApplication);
+
 });
 
 adminRouter.delete("/applications/:id", async (req: Request, res: Response): Promise<void | Response> => {

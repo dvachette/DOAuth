@@ -6,6 +6,8 @@ import { useUserService } from "../services/user";
 import bcrypt from "bcrypt";
 import fs from "fs";
 import path from "path";
+import { exportJWK, importSPKI } from "jose";
+import { jwtPublicKey } from "../config/keys";
 
 export const oauthRouter = Router();
 
@@ -206,4 +208,10 @@ oauthRouter.get("/userinfo", async (req: Request, res: Response): Promise<void |
         email: user.email,
         created_at: user.created_at,
     });
+});
+
+oauthRouter.get("/jwks", async (req: Request, res: Response): Promise<void | Response> => {
+    const publicKey = await importSPKI(jwtPublicKey, 'RS256');
+    const jwk = await exportJWK(publicKey);
+    res.json({ keys: [{ ...jwk, use: 'sig', alg: 'RS256' }] });
 });

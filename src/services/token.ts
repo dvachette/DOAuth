@@ -64,11 +64,24 @@ async function verifyAccessToken(token: string): Promise<string | null> {
     }
 }
 
+async function verifyAccessTokenFull(token: string): Promise<any | null> {
+    try {
+        const publicKey = await importSPKI(jwtPublicKey, 'RS256');
+        const { payload } = await jwtVerify(token, publicKey, {
+            issuer: 'https://auth.dvachette.fr',
+        });
+        return payload;
+    } catch (err) {
+        return null;
+    }
+}
+
 export function useTokenService() {
     return {
         generateAccessToken,
         generateRefreshToken,
         verifyRefreshToken,
         verifyAccessToken,
+        verifyAccessTokenFull
     };
 }

@@ -117,6 +117,18 @@ async function removeRoleFromUser(userId: string, roleId: string): Promise<void>
     );
 }
 
+async function findByEmail(email: string): Promise<User | null> {
+    const userResult = await database.query<User>(
+        "SELECT * FROM users WHERE email = $1",
+        [email]
+    );
+    if (!userResult.rowCount) {
+        return null;
+    }
+
+    return userResult.rows[0];
+}
+
 export function useUserService() {
     return {
         findByUsername,
@@ -127,6 +139,7 @@ export function useUserService() {
         deleteUser,
         listUserRoles,
         assignRoleToUser,
-        removeRoleFromUser
+        removeRoleFromUser,
+        findByEmail,
     };
 }

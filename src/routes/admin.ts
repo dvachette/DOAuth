@@ -70,16 +70,43 @@ adminRouter.get("/applications", async (req: Request, res: Response): Promise<vo
 });
 
 adminRouter.post("/applications", async (req: Request, res: Response): Promise<void | Response> => {
-    const { name } = req.body;
+    const { name, admin_username } = req.body;
 
     if (!name) {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const userService = useUserService();
+
+    if (!admin_username) {
+        return res.status(400).json({ error: "Admin username is required" });
+    }
+    const adminUser = await userService.findByUsername(admin_username);
+    if (!adminUser) {
+        return res.status(400).json({ error: "Admin user not found" });
+    }
+
+
     const applicationService = useApplicationService();
 
     const newApplication = await applicationService.createApplication(name);
 
+    const roleService = useRoleService();
+    const adminRole = await roleService.createRole(newApplication.id, "admin", "Full access to the application");
+
+    await userService.assignRoleToUser(adminUser.id, adminRole.id);
+
+    const permissionService = usePermissionService();
+
+    const permissions = [
+        { scope: "roles:read", description: "Read roles" },
+        { scope: "roles:write", description: "Create, update and delete roles" },
+        { scope: "roles:assign", description: "Assign and remove roles to users" },
+    ];
+    for (const perm of permissions) {
+        const permission = await permissionService.createPermission(newApplication.id, perm.scope, perm.description);
+        await permissionService.assignPermissionToRole(permission.id, adminRole.id);
+    }
     res.status(201).json(newApplication);
 
 });

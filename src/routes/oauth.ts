@@ -47,7 +47,7 @@ oauthRouter.post("/token", async (req: Request, res: Response): Promise<void | R
 });
 
 oauthRouter.get("/authorize", async (req: Request, res: Response): Promise<void | Response> => {
-    const { client_id, redirect_uri, state } = req.query;
+    const { client_id, redirect_uri, state, message } = req.query;
 
     if (!client_id || !redirect_uri || !state) {
         return res.status(400).json({ error: "Missing required parameters" });
@@ -67,7 +67,8 @@ oauthRouter.get("/authorize", async (req: Request, res: Response): Promise<void 
         .replace("__APPLICATION_NAME__", application.name)
         .replace("__CLIENT_ID__", application.client_id)
         .replace("__REDIRECT_URI__", redirect_uri as string)
-        .replace("__STATE__", state as string);
+        .replace("__STATE__", state as string)
+        .replace("__MESSAGE__", message ? message as string : "");
 
     res.setHeader("Content-Type", "text/html");
     res.send(pageContent);
@@ -214,4 +215,28 @@ oauthRouter.get("/jwks", async (req: Request, res: Response): Promise<void | Res
     const publicKey = await importSPKI(jwtPublicKey, 'RS256');
     const jwk = await exportJWK(publicKey);
     res.json({ keys: [{ ...jwk, use: 'sig', alg: 'RS256' }] });
+});
+
+oauthRouter.post("/register", async (req: Request, res: Response): Promise<void | Response> => {
+    const { username, email, password, client_id, redirect_uri, state } = req.body;
+
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: "Missing required parameters" });
+    }
+
+    const userService = useUserService();
+
+    const usernameExists = await userService.findByUsername(username);
+    if (usernameExists) {
+        return res.redirect(`/oauth/authorize?client_id=${encodeURIComponent(client_id)}&redirect_uri=${encodeURIComponent(redirect_uri)}&state=${encodeURIComponent(state)}&message=Nom d'utilisateur déjà utilisé`);
+    }
+
+    const existingUser = await userService.findByEmail(email);
+    if (existingUser) {
+        return res.redirect(`/oauth/authorize?client_id=${encodeURIComponent(client_id)}&redirect_uri=${encodeURIComponent(redirect_uri)}&state=${encodeURIComponent(state)}&message=Email déjà utilisé`);
+    }
+
+    const newUser = await userService.createUser(username, email, password);
+
+    return res.redirect(`/oauth/authorize?client_id=${encodeURIComponent(client_id)}&redirect_uri=${encodeURIComponent(redirect_uri)}&state=${encodeURIComponent(state)}&message=Compte créé avec succès, veuillez vous connecter`);
 });

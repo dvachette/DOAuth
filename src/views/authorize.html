@@ -4,20 +4,120 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Authorization</title>
-        <style></style>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+            // Si il y a un message, l'afficher dans une div, puis le faire disparaître après 5 secondes
+            const message = "__MESSAGE__";
+            if (message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = message;
+                messageDiv.style.position = 'fixed';
+                messageDiv.style.top = '10px';
+                messageDiv.style.left = '50%';
+                messageDiv.style.transform = 'translateX(-50%)';
+                messageDiv.style.backgroundColor = '#f8d7da';
+                messageDiv.style.color = '#721c24';
+                messageDiv.style.padding = '10px 20px';
+                messageDiv.style.border = '1px solid #f5c6cb';
+                messageDiv.style.borderRadius = '5px';
+                document.body.appendChild(messageDiv);  
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 5000);
+            }
+            // Désactiver le bouton d'inscription si les mots de passe ne correspondent pas
+            const passwordInput = document.querySelector('input[name="password"]');
+            const confirmPasswordInput = document.querySelector('input[name="confirm_password"]');
+            const registerButton = document.querySelector('#register-form button');
+
+            function validatePasswords() {
+                if (passwordInput.value && confirmPasswordInput.value && passwordInput.value === confirmPasswordInput.value) {
+                    registerButton.disabled = false;
+                } else {
+                    registerButton.disabled = true;
+                }
+            }
+
+            passwordInput.addEventListener('input', validatePasswords);
+            confirmPasswordInput.addEventListener('input', validatePasswords);
+
+            // Afficher le formulaire d'inscription et masquer le formulaire de connexion
+            const showRegisterButton = document.getElementById('show-register');
+            const showLoginButton = document.getElementById('show-login');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+
+            showRegisterButton.addEventListener('click', () => {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                showRegisterButton.classList.add('hidden');
+                showLoginButton.classList.remove('hidden');
+            });
+
+            // Afficher le formulaire de connexion et masquer le formulaire d'inscription
+            showLoginButton.addEventListener('click', () => {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                showRegisterButton.classList.remove('hidden');
+                showLoginButton.classList.add('hidden');
+            });
+        });
+
+
+        </script>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 20px;
+            }
+            input {
+                padding: 10px;
+                font-size: 16px;
+            }
+            button {
+                padding: 10px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+            .hidden {
+                display: none;
+            }
+        </style>
     </head>
     <body>
-        <h1>Authorization</h1>
-        <p>Application <strong>__APPLICATION_NAME__</strong> is requesting access to your account.</p>
-        <form method="POST" action="/oauth/authorize">
-            <input type="hidden" name="client_id" value="__CLIENT_ID__">
-            <input type="hidden" name="redirect_uri" value="__REDIRECT_URI__">
-            <input type="hidden" name="state" value="__STATE__">
-            <input type="hidden" name="response_type" value="code">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit" name="action" value="approve">Approve</button>
-            <button type="submit" name="action" value="deny">Deny</button>
+        <h1>Connectez vous avec votre compte DAccount pour acceder à __APPLICATION_NAME__</h1>
+        <button id="show-register">Créer un compte</button>
+        <button id="show-login" class="hidden">Se connecter</button>
+        <form method="POST" action="/oauth/authorize" id="login-form">
+            <input type="hidden" form="login-form" name="client_id" value="__CLIENT_ID__">
+            <input type="hidden" form="login-form" name="redirect_uri" value="__REDIRECT_URI__">
+            <input type="hidden" form="login-form" name="state" value="__STATE__">
+            <input type="hidden" form="login-form" name="response_type" value="code">
+            <input type="text" form="login-form" name="username" placeholder="Nom d'utilisateur" required>
+            <input type="password" form="login-form" name="password" placeholder="Mot de passe" required>
+            <button type="submit" form="login-form" name="action" value="approve">Se connecter</button>
+            <button type="submit" form="login-form" name="action" value="deny">Annuler</button>
+        </form>
+        <form method="POST" action="/oauth/register" id="register-form" class="hidden">
+            <input type="hidden" form="login-form" name="client_id" value="__CLIENT_ID__">
+            <input type="hidden" form="login-form" name="redirect_uri" value="__REDIRECT_URI__">
+            <input type="hidden" form="login-form" name="state" value="__STATE__">
+            <input type="text" form="register-form" name="username" placeholder="Nom d'utilisateur" required>
+            <input type="email" form="register-form" name="email" placeholder="Email" required>
+            <input type="password" form="register-form" name="password" placeholder="Mot de passe" required>
+            <input type="password" form="register-form" name="confirm_password" placeholder="Confirmer le mot de passe" required>
+            <button type="submit" form="register-form" disabled>Créer un compte</button>
         </form>
     </body>
 </html>

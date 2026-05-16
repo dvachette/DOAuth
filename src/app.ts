@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { oauthRouter } from "./routes/oauth";
 import { adminAuthMiddleware } from "./middlewares/adminAuth";
 import { adminRouter } from "./routes/admin";
+import { appAdminRouter } from "./routes/appAdmin";
 
 export const app = express();
 app.use(express.json());
@@ -16,3 +17,4 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 app.use("/admin", adminAuthMiddleware, adminRouter);
 
 app.use("/oauth", oauthRouter);
+app.use("/app", appAdminRouter);

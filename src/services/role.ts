@@ -24,10 +24,25 @@ async function deleteRole(roleId: string): Promise<boolean> {
     return !!result.rowCount;
 }
 
+async function listAppUsers(applicationId: string): Promise<{ user_id: string; roles: Role[] }[]> {
+    const result = await database.query(
+        `SELECT ur.user_id, json_agg(json_build_object('id', r.id, 'application_id', r.application_id, 'name', r.name, 'description', r.description, 'created_at', r.created_at)) AS roles
+         FROM user_roles ur
+         JOIN roles r ON ur.role_id = r.id
+         WHERE r.application_id = $1
+         GROUP BY ur.user_id`,
+        [applicationId]
+    );
+    return result.rows.map(row => ({
+        user_id: row.user_id,
+        roles: row.roles
+    }));
+}
 export function useRoleService() {
     return {
         listRoles,
         createRole,
-        deleteRole
+        deleteRole,
+        listAppUsers
     };
 }
